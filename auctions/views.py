@@ -71,18 +71,21 @@ def new(request):
         form = NewListingForm(request.POST)
         if form.is_valid():
             title = form.cleaned_data["title"]
-            content = form.cleaned_data["content"]
+            bid = form.cleaned_data["bid"]
             imageURL = form.cleaned_data["imageURL"]
             category = form.cleaned_data["category"]
             description = form.cleaned_data["description"]
-            # only for test
+            # add var to table
+            auction=AuctionListing(title=title,price=bid,image=imageURL,category=category,description=description)
+            auction.save()
             return HttpResponseRedirect(reverse("index"))
         else:
+            # form.fields['category'].choices = CategoryChoices.choices
             return render(request, "auctions/new.html", {
                 "form": form
             })
     form = NewListingForm()
-    form.fields['category'].choices = CategoryChoices.choices
+    # form.fields['category'].choices = CategoryChoices.choices
     return render(request, "auctions/new.html", {
         "form": form
     })
