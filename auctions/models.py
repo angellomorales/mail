@@ -1,4 +1,5 @@
 from django.contrib.auth.models import AbstractUser
+from django.utils.translation import gettext_lazy as _
 from django.db import models
 
 import datetime
@@ -12,12 +13,12 @@ class User(AbstractUser):
     # pass
     country = models.CharField(max_length=64, blank=True)
 
-
-class CategoryItem(models.Model):
-    name = models.CharField(max_length=64, unique=True)
-
-    def __str__(self):
-        return f"{self.name}"
+class CategoryChoices(models.TextChoices):
+    UNCATEGORY = "UN", _("Uncategory")
+    TOYS = "TO", _("Toys")
+    FASHION = "FA", _("Fashion")
+    ELECTRONICS = "EL", _("Electronics")
+    HOME = "HO", _("Home")
 
 
 class AuctionListing(models.Model):
@@ -27,8 +28,8 @@ class AuctionListing(models.Model):
     dateCreated = models.DateTimeField(auto_now=True)
     image = models.URLField(blank=True)
     sold = models.BooleanField(default=False)
-    category = models.ForeignKey(
-        CategoryItem, models.SET_NULL, blank=True, null=True, related_name="Category")
+    category = models.CharField(
+        max_length=2, choices=CategoryChoices.choices, default=CategoryChoices.UNCATEGORY, blank=False)
 
     def __str__(self):
         return f"{self.title}"
