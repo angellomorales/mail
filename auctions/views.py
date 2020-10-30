@@ -94,3 +94,6 @@ def new(request):
     return render(request, "auctions/new.html", {
         "form": form
     })
+
+def listing(request):
+    pass

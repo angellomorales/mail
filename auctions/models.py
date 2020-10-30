@@ -16,6 +16,7 @@ class User(AbstractUser):
     # def __str__(self):
     #     return f"{self.username}"
 
+
 class CategoryChoices(models.TextChoices):
     UNCATEGORY = "UN", _("Uncategory")
     TOYS = "TO", _("Toys")
@@ -26,7 +27,7 @@ class CategoryChoices(models.TextChoices):
 
 class AuctionListing(models.Model):
     title = models.CharField(max_length=64)
-    description = models.CharField(max_length=64)
+    description = models.CharField(max_length=64, blank=True)
     price = models.DecimalField(max_digits=11, decimal_places=2)
     dateCreated = models.DateTimeField(auto_now=True)
     image = models.URLField(blank=True)
