@@ -13,6 +13,9 @@ class User(AbstractUser):
     # pass
     country = models.CharField(max_length=64, blank=True)
 
+    # def __str__(self):
+    #     return f"{self.username}"
+
 class CategoryChoices(models.TextChoices):
     UNCATEGORY = "UN", _("Uncategory")
     TOYS = "TO", _("Toys")
@@ -30,6 +33,8 @@ class AuctionListing(models.Model):
     sold = models.BooleanField(default=False)
     category = models.CharField(
         max_length=2, choices=CategoryChoices.choices, default=CategoryChoices.UNCATEGORY, blank=False)
+    owner = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="owner")
 
     def __str__(self):
         return f"{self.title}"
