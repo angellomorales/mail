@@ -5,3 +5,9 @@ body {
 .submitr{
     text-align: right;
 }
+
+.card img{
+    max-height: 250px;
+    width: auto;
+    align-items: center;
+}

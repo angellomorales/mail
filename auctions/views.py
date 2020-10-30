@@ -10,7 +10,10 @@ from .forms import NewListingForm
 
 
 def index(request):
-    return render(request, "auctions/index.html")
+    listing = AuctionListing.objects.all()
+    return render(request, "auctions/index.html", {
+        "listing": listing
+    })
 
 
 def login_view(request):
@@ -75,9 +78,10 @@ def new(request):
             imageURL = form.cleaned_data["imageURL"]
             category = form.cleaned_data["category"]
             description = form.cleaned_data["description"]
-            owner=request.user
+            owner = request.user
             # add var to table
-            auction=AuctionListing(title=title,price=bid,image=imageURL,category=category,description=description,owner=owner)
+            auction = AuctionListing(title=title, price=bid, image=imageURL,
+                                     category=category, description=description, owner=owner)
             auction.save()
             return HttpResponseRedirect(reverse("index"))
         else:
