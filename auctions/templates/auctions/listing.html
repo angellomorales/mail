@@ -1,0 +1,29 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+<h2>Listing: {{ item.title }}</h2>
+<div class="text-center listing">
+    {% if item.image %}
+    <img src="{{ item.image }}" class="card-img" alt="Image">
+    {% else %}
+    <img src="https://ctkbiotech.com/wp/wp-content/uploads/2018/03/not-available.jpg" class="card-img" alt="Image">
+    {% endif %}
+</div>
+<p>{{ item.description }}</p>
+<h2>$ {{ item.price }}</p>
+<h5><small class="text-muted">n bid(s) so far agregar </small></h5>
+<form action="" method="post">
+    {% csrf_token %}
+    <label for="bid">Bid:</label>
+    <input type="number" name="bid">
+    <input type="submit" value="Bid">
+</form>
+<br>
+<h2>Details</h2>
+<ul>
+    <li>Listed by: {{ item.owner.email }}</li>
+    <li>Category: {{ item.get_category_display }}</li>
+    <li>Created: {{ item.dateCreated }}</li>
+</ul>
+
+{% endblock %}

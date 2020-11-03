@@ -95,5 +95,9 @@ def new(request):
         "form": form
     })
 
-def listing(request):
-    pass
+@login_required(login_url="index")
+def listing(request,item_id):
+    item = AuctionListing.objects.get(pk=item_id)
+    return render(request, "auctions/listing.html",{
+        "item":item
+    })

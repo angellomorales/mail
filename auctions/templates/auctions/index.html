@@ -5,6 +5,10 @@
 
 {% for item in listing %}
 
+{% if user.is_authenticated %}
+<a href="{% url 'listing' item.id %}">
+{% endif %}  
+
 <div class="card">
     <div class="row">
         <div class="col-md-4">
@@ -27,6 +31,9 @@
         </div>
     </div>
 </div>
+{% if user.is_authenticated %}
+</a>
+{% endif %}  
 <br>
     
 {% endfor %}

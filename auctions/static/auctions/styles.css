@@ -9,5 +9,8 @@ body {
 .card img{
     max-height: 250px;
     width: auto;
-    align-items: center;
+}
+.listing img{
+    max-height: 400px;
+    width: auto;
 }
