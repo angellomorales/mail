@@ -11,7 +11,8 @@ class User(AbstractUser):
     # si hay un error borrar cache initial y el archivo .sqlite3 y volver a hacer migracion sin el nombre de
     # la app
     # pass
-    country = models.CharField(max_length=64, blank=True)
+    #use 'class' in the poiner when class is below the pointer
+    watchlist=  models.ManyToManyField('AuctionListing',blank=True, related_name="userWatchlist")
 
     # def __str__(self):
     #     return f"{self.username}"
@@ -25,10 +26,12 @@ class CategoryChoices(models.TextChoices):
     HOME = "HO", _("Home")
 
 
+
+
 class AuctionListing(models.Model):
     title = models.CharField(max_length=64)
     description = models.CharField(max_length=64, blank=True)
-    price = models.DecimalField(max_digits=11, decimal_places=2)
+    initialPrice = models.DecimalField(max_digits=11, decimal_places=2)
     dateCreated = models.DateTimeField(auto_now=True)
     image = models.URLField(blank=True)
     sold = models.BooleanField(default=False)
@@ -36,21 +39,25 @@ class AuctionListing(models.Model):
         max_length=2, choices=CategoryChoices.choices, default=CategoryChoices.UNCATEGORY, blank=False)
     owner = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="owner")
+    
+    # bids = models.ManyToManyField(Bid,blank=True, related_name="bids")
 
     def __str__(self):
-        return f"{self.title}"
-
+        if self.sold:
+            soldStatus="sold"
+        else:
+            soldStatus="available"
+        return f"{self.title} sold Status: {soldStatus}"
 
 class Bid(models.Model):
-    item = models.ForeignKey(
+    currentBid = models.DecimalField(max_digits=11, decimal_places=2)
+    currentUser = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="currentUser")
+    item=models.ForeignKey(
         AuctionListing, on_delete=models.CASCADE, related_name="item")
-    actualBid = models.DecimalField(max_digits=11, decimal_places=2)
-    actualUser = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="userBid")
-    users = models.ManyToManyField(User, related_name="Bids")
 
     def __str__(self):
-        return f"{self.item} {self.actualBid} {self.actualUser}"
+        return f"{self.currentUser} {self.currentBid}"
 
 
 class Coment(models.Model):

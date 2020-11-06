@@ -4,12 +4,15 @@ from .models import User, AuctionListing, Bid, Coment
 
 # Register your models here.
 class AuctionAdmin(admin.ModelAdmin):
-    list_display=("title","description","price","dateCreated","sold","category","owner")
+    list_display=("title","description","initialPrice","dateCreated","sold","category","owner")
 
 class BidAdmin(admin.ModelAdmin):
-    list_display=("item","actualBid","actualUser")
+    list_display=("currentUser","currentBid")
 
-admin.site.register(User)
+class UserAdmin (admin.ModelAdmin):
+    filter_horizontal=("watchlist",)
+
+admin.site.register(User,UserAdmin)
 admin.site.register(AuctionListing,AuctionAdmin)
 admin.site.register(Bid,BidAdmin)
 admin.site.register(Coment)
