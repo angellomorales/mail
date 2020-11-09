@@ -7,7 +7,7 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Max
 
 from .models import User, AuctionListing, CategoryChoices, Bid
-from .forms import NewListingForm
+from .forms import NewListingForm, NewBidForm
 
 
 def index(request):
@@ -104,30 +104,6 @@ def listing(request, item_id):
     user = request.user
     bids = Bid.objects.filter(item=item)
 
-    if request.method == "POST":
-        # --------Bids---------------
-        userBid = float(request.POST["bid"])
-        # -------ojo modificar a form de django para usar validate----------
-        if (bids.exists()):
-            # get max value in Bid Table in currentBid field
-            maxbid = bids.aggregate(Max('currentBid'))['currentBid__max']
-            if(userBid > maxbid):
-                if(bids.filter(currentUser_id=user.id).exists()):
-                    currentUser = bids.get(currentUser_id=user.id)
-                    currentUser.currentBid = userBid
-                    currentUser.save()
-                else:
-                    newBid = Bid.objects.create(
-                        currentUser=user, currentBid=userBid, item=item)
-            else:
-                message = f"The bid must be greater than { maxbid }"
-        else:
-            if (userBid >= item.initialPrice):
-                newBid = Bid.objects.create(
-                    currentUser=user, currentBid=userBid, item=item)
-            else:
-                message = "  The bid must be at least as large as the starting price"
-
     # ----------watchlist---------------------
     if "watchlistActive" in request.GET:
         if bool(request.GET["watchlistActive"]):
@@ -135,10 +111,47 @@ def listing(request, item_id):
         else:
             # remove condition
             user.watchlist.remove(item)
+
     # all userwatchlist related to this item tested
     watchlistStatus = item.userWatchlist.all()
+    # --------Bids---------------
+    if request.method == "POST":
+
+        form = NewBidForm(request.POST)
+        if form.is_valid():
+            userBid = form.cleaned_data["bid"]
+
+            if (bids.exists()):
+                # get max value in Bid Table in currentBid field
+                maxbid = bids.aggregate(Max('currentBid'))['currentBid__max']
+                if(userBid > maxbid):
+                    if(bids.filter(currentUser_id=user.id).exists()):
+                        currentUser = bids.get(currentUser_id=user.id)
+                        currentUser.currentBid = userBid
+                        currentUser.save()
+                    else:
+                        newBid = Bid.objects.create(
+                            currentUser=user, currentBid=userBid, item=item)
+                else:
+                    message = f"The bid must be greater than { maxbid }"
+            else:
+                if (userBid >= item.initialPrice):
+                    newBid = Bid.objects.create(
+                        currentUser=user, currentBid=userBid, item=item)
+                else:
+                    message = "  The bid must be at least as large as the starting price"
+        else:
+            return render(request, "auctions/listing.html", {
+                "item": item,
+                "isInWatchlist": watchlistStatus.filter(id=user.id).exists(),
+                "message": message,
+                "form": form
+            })
+
+    form = NewBidForm()
     return render(request, "auctions/listing.html", {
         "item": item,
         "isInWatchlist": watchlistStatus.filter(id=user.id).exists(),
-        "message": message
+        "message": message,
+        "form": form
     })

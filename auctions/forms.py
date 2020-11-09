@@ -8,3 +8,6 @@ class NewListingForm(forms.Form):
     imageURL = forms.URLField(required=False)
     category = forms.ChoiceField(choices=CategoryChoices.choices,required=True)
     description = forms.CharField(widget=forms.Textarea, required=False)
+
+class NewBidForm(forms.Form):
+    bid=forms.DecimalField(decimal_places=2,required=True)

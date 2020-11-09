@@ -33,8 +33,7 @@
     <h5><small class="text-muted">n bid(s) so far agregar </small></h5>
     <form action="" method="post">
         {% csrf_token %}
-        <label for="bid">Bid:</label>
-        <input type="number" name="bid" min="0">
+        {{ form }}
         <input type="submit" value="Bid">
     </form>
 
