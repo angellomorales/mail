@@ -1,7 +1,12 @@
 {% extends "auctions/layout.html" %}
 
 {% block body %}
+
+{% if message %}
+<h2>Listing: {{ item.title }} Error:"{{ message }}"</h2>
+{% else %}
 <h2>Listing: {{ item.title }}</h2>
+{% endif %}
 <div class="text-center listing">
     {% if item.image %}
     <img src="{{ item.image }}" class="card-img" alt="Image">
@@ -11,7 +16,7 @@
 </div>
 <div>
     <form action="" method="get">
-       
+
         {% if not isInWatchlist %}
         <input type="hidden" name="watchlistActive" value="add">
         <input type="submit" value=" Add Watchlist">
@@ -19,26 +24,27 @@
         <input type="hidden" name="watchlistActive" value="">
         <input type="submit" value="Remove Watchlist">
         {% endif %}
-            
-        
+
+
     </form>
 </div>
 <p>{{ item.description }}</p>
 <h2>$ {{ item.initialPrice }}</p>
-<h5><small class="text-muted">n bid(s) so far agregar </small></h5>
-<form action="" method="post">
-    {% csrf_token %}
-    <label for="bid">Bid:</label>
-    <input type="number" name="bid" min="0">
-    <input type="submit" value="Bid">
-</form>
-<br>
-<h2>Details</h2>
-<ul>
-    <li>Listed by: {{ item.owner }}</li>
-    <li>email: {{ item.owner.email }}</li>
-    <li>Category: {{ item.get_category_display }}</li>
-    <li>Created: {{ item.dateCreated }}</li>
-</ul>
+    <h5><small class="text-muted">n bid(s) so far agregar </small></h5>
+    <form action="" method="post">
+        {% csrf_token %}
+        <label for="bid">Bid:</label>
+        <input type="number" name="bid" min="0">
+        <input type="submit" value="Bid">
+    </form>
 
-{% endblock %}
+    <br>
+    <h2>Details</h2>
+    <ul>
+        <li>Listed by: {{ item.owner }}</li>
+        <li>email: {{ item.owner.email }}</li>
+        <li>Category: {{ item.get_category_display }}</li>
+        <li>Created: {{ item.dateCreated }}</li>
+    </ul>
+
+    {% endblock %}

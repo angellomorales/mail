@@ -47,7 +47,7 @@ class AuctionListing(models.Model):
             soldStatus="sold"
         else:
             soldStatus="available"
-        return f"{self.title} sold Status: {soldStatus}"
+        return f"{self.title} Status: {soldStatus}"
 
 class Bid(models.Model):
     currentBid = models.DecimalField(max_digits=11, decimal_places=2)
@@ -57,7 +57,7 @@ class Bid(models.Model):
         AuctionListing, on_delete=models.CASCADE, related_name="item")
 
     def __str__(self):
-        return f"{self.currentUser} {self.currentBid}"
+        return f"{self.currentUser} {self.currentBid} {self.item}"
 
 
 class Coment(models.Model):

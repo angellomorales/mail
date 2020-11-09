@@ -7,7 +7,7 @@ class AuctionAdmin(admin.ModelAdmin):
     list_display=("title","description","initialPrice","dateCreated","sold","category","owner")
 
 class BidAdmin(admin.ModelAdmin):
-    list_display=("currentUser","currentBid")
+    list_display=("currentUser","currentBid","item")
 
 class UserAdmin (admin.ModelAdmin):
     filter_horizontal=("watchlist",)

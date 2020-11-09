@@ -4,6 +4,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
+from django.db.models import Max
 
 from .models import User, AuctionListing, CategoryChoices, Bid
 from .forms import NewListingForm
@@ -99,25 +100,45 @@ def new(request):
 def listing(request, item_id):
     item = AuctionListing.objects.get(pk=item_id)
     # user = request.user.username #for username
+    message = None
     user = request.user
+    bids = Bid.objects.filter(item=item)
 
     if request.method == "POST":
+        # --------Bids---------------
         userBid = float(request.POST["bid"])
-        # initial=AuctionListing.objects.get(owner__id=user.id).initialPrice#initialprice for owner's listing with current owner
-    
-    #all userwatchlist related to this item
-    
+        # -------ojo modificar a form de django para usar validate----------
+        if (bids.exists()):
+            # get max value in Bid Table in currentBid field
+            maxbid = bids.aggregate(Max('currentBid'))['currentBid__max']
+            if(userBid > maxbid):
+                if(bids.filter(currentUser_id=user.id).exists()):
+                    currentUser = bids.get(currentUser_id=user.id)
+                    currentUser.currentBid = userBid
+                    currentUser.save()
+                else:
+                    newBid = Bid.objects.create(
+                        currentUser=user, currentBid=userBid, item=item)
+            else:
+                message = f"The bid must be greater than { maxbid }"
+        else:
+            if (userBid >= item.initialPrice):
+                newBid = Bid.objects.create(
+                    currentUser=user, currentBid=userBid, item=item)
+            else:
+                message = "  The bid must be at least as large as the starting price"
+
+    # ----------watchlist---------------------
     if "watchlistActive" in request.GET:
         if bool(request.GET["watchlistActive"]):
             user.watchlist.add(item)
         else:
-            #remove condition
+            # remove condition
             user.watchlist.remove(item)
-
-    watchlistStatus=item.userWatchlist.all()
+    # all userwatchlist related to this item tested
+    watchlistStatus = item.userWatchlist.all()
     return render(request, "auctions/listing.html", {
         "item": item,
-        "isInWatchlist":watchlistStatus.filter(id=user.id).exists()
+        "isInWatchlist": watchlistStatus.filter(id=user.id).exists(),
+        "message": message
     })
-
-    
