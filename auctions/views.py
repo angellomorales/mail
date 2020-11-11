@@ -134,7 +134,7 @@ def listing(request, item_id):
 def bidsManage(bids, userBid, user, item):
     message = None
     if not item.closed:
-        if (bids.exists()):
+        if bids.exists():
             # get max value in Bid Table in currentBid field
             maxbid = bids.aggregate(Max('currentBid'))['currentBid__max']
             if(userBid > maxbid):
@@ -170,13 +170,13 @@ def watchlistManager(request, item):
 
 def closedManager(request, item_id):
     item=AuctionListing.objects.get(pk=item_id)
-    
-    if "close" in request.GET:
-        bids = Bid.objects.filter(item=item)
-        maxbid = bids.aggregate(Max('currentBid'))['currentBid__max']
-        winnerBid=bids.get(currentBid=maxbid)
-        winner=winnerBid.currentUser
-        item.closed=True
-        item.winner=winner
-        item.save()
+    bids = Bid.objects.filter(item=item)
+    if bids.exists():
+        if "close" in request.GET:
+            maxbid = bids.aggregate(Max('currentBid'))['currentBid__max']
+            winnerBid=bids.get(currentBid=maxbid)
+            winner=winnerBid.currentUser
+            item.closed=True
+            item.winner=winner
+            item.save()
     return item
