@@ -98,20 +98,22 @@ def new(request):
 
 @login_required(login_url="index")
 def listing(request, item_id):
-    item = AuctionListing.objects.get(pk=item_id)
-    message=None
+    
+    message = None
+    item = closedManager(request,item_id)
     bids = Bid.objects.filter(item=item)
-    user = watchlistManager(request, item) #watchlist
 
+    user = watchlistManager(request, item)  # watchlist
     # all userwatchlist related to this item tested
     watchlistStatus = item.userWatchlist.all()
+
 
     if request.method == "POST":
 
         form = NewBidForm(request.POST)
         if form.is_valid():
             userBid = form.cleaned_data["bid"]
-            message = bidsManage(bids, userBid, user, item) #bids
+            message = bidsManage(bids, userBid, user, item)  # bids
         else:
             return render(request, "auctions/listing.html", {
                 "item": item,
@@ -131,25 +133,26 @@ def listing(request, item_id):
 
 def bidsManage(bids, userBid, user, item):
     message = None
-    if (bids.exists()):
-        # get max value in Bid Table in currentBid field
-        maxbid = bids.aggregate(Max('currentBid'))['currentBid__max']
-        if(userBid > maxbid):
-            if(bids.filter(currentUser_id=user.id).exists()):
-                currentUser = bids.get(currentUser_id=user.id)
-                currentUser.currentBid = userBid
-                currentUser.save()
+    if not item.closed:
+        if (bids.exists()):
+            # get max value in Bid Table in currentBid field
+            maxbid = bids.aggregate(Max('currentBid'))['currentBid__max']
+            if(userBid > maxbid):
+                if(bids.filter(currentUser_id=user.id).exists()):
+                    currentUser = bids.get(currentUser_id=user.id)
+                    currentUser.currentBid = userBid
+                    currentUser.save()
+                else:
+                    newBid = Bid.objects.create(
+                        currentUser=user, currentBid=userBid, item=item)
             else:
+                message = f"The bid must be greater than { maxbid }"
+        else:
+            if (userBid >= item.initialPrice):
                 newBid = Bid.objects.create(
                     currentUser=user, currentBid=userBid, item=item)
-        else:
-            message = f"The bid must be greater than { maxbid }"
-    else:
-        if (userBid >= item.initialPrice):
-            newBid = Bid.objects.create(
-                currentUser=user, currentBid=userBid, item=item)
-        else:
-            message = "  The bid must be at least as large as the starting price"
+            else:
+                message = f"  The bid must be at least as large as the starting price ${item.initialPrice}"
     return message
 
 
@@ -163,3 +166,17 @@ def watchlistManager(request, item):
             # remove condition
             user.watchlist.remove(item)
     return user
+
+
+def closedManager(request, item_id):
+    item=AuctionListing.objects.get(pk=item_id)
+    
+    if "close" in request.GET:
+        bids = Bid.objects.filter(item=item)
+        maxbid = bids.aggregate(Max('currentBid'))['currentBid__max']
+        winnerBid=bids.get(currentBid=maxbid)
+        winner=winnerBid.currentUser
+        item.closed=True
+        item.winner=winner
+        item.save()
+    return item

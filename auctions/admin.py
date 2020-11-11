@@ -4,7 +4,7 @@ from .models import User, AuctionListing, Bid, Coment
 
 # Register your models here.
 class AuctionAdmin(admin.ModelAdmin):
-    list_display=("title","description","initialPrice","dateCreated","sold","category","owner")
+    list_display=("title","description","initialPrice","dateCreated","closed","category","owner","winner")
 
 class BidAdmin(admin.ModelAdmin):
     list_display=("currentUser","currentBid","item")

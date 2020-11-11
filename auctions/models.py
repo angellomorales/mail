@@ -34,20 +34,20 @@ class AuctionListing(models.Model):
     initialPrice = models.DecimalField(max_digits=11, decimal_places=2)
     dateCreated = models.DateTimeField(auto_now=True)
     image = models.URLField(blank=True)
-    sold = models.BooleanField(default=False)
+    closed = models.BooleanField(default=False)
     category = models.CharField(
         max_length=2, choices=CategoryChoices.choices, default=CategoryChoices.UNCATEGORY, blank=False)
     owner = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="owner")
-    
-    # bids = models.ManyToManyField(Bid,blank=True, related_name="bids")
+    winner=models.ForeignKey(
+        User, on_delete=models.CASCADE, blank=True, null=True, related_name="winner")
 
     def __str__(self):
-        if self.sold:
-            soldStatus="sold"
+        if self.closed:
+            status="closed"
         else:
-            soldStatus="available"
-        return f"{self.title} Status: {soldStatus}"
+            status="available"
+        return f"{self.title} Status: {status}"
 
 class Bid(models.Model):
     currentBid = models.DecimalField(max_digits=11, decimal_places=2)

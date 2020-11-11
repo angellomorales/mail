@@ -3,7 +3,8 @@
 {% block body %}
 
 {% if message %}
-<h2>Listing: {{ item.title }} Error:"{{ message }}"</h2>
+<h2>Listing: {{ item.title }} </h2>
+<h3>Error:"{{ message }}"</h3>
 {% else %}
 <h2>Listing: {{ item.title }}</h2>
 {% endif %}
@@ -15,35 +16,72 @@
     {% endif %}
 </div>
 <div>
-    <form action="" method="get">
+    {% if not item.closed %}
+    <div>
+        <form action="" method="get">
 
-        {% if not isInWatchlist %}
-        <input type="hidden" name="watchlistActive" value="add">
-        <input type="submit" value=" Add Watchlist">
-        {% else %}
-        <input type="hidden" name="watchlistActive" value="">
-        <input type="submit" value="Remove Watchlist">
-        {% endif %}
+            {% if not isInWatchlist %}
+            <input type="hidden" name="watchlistActive" value="add">
+            <input type="submit" value=" Add Watchlist">
+            {% else %}
+            <input type="hidden" name="watchlistActive" value="">
+            <input type="submit" value="Remove Watchlist">
+            {% endif %}
 
+        </form>
+    </div>
+    {% endif %}
 
-    </form>
+    {% if item.owner == request.user %}
+    <div>
+        <form action="" method="get">
+
+            {% if not item.closed %}
+            <input type="hidden" name="close" value="True">
+            <input type="submit" value=" Close">
+            {% else %}
+            <input type="submit" value=" Closed" disabled>
+            {% endif %}
+
+        </form>
+    </div>
+    {% endif %}
+
 </div>
 <p>{{ item.description }}</p>
-<h2>$ {{ item.initialPrice }}</p>
+<br>
+
+{% if not item.closed %}
+<div>
+    <h2>$ {{ item.initialPrice }}</h2>
     <h5><small class="text-muted">n bid(s) so far agregar </small></h5>
     <form action="" method="post">
         {% csrf_token %}
         {{ form }}
         <input type="submit" value="Bid">
     </form>
+</div>
+<br>
 
-    <br>
-    <h2>Details</h2>
-    <ul>
-        <li>Listed by: {{ item.owner }}</li>
-        <li>email: {{ item.owner.email }}</li>
-        <li>Category: {{ item.get_category_display }}</li>
-        <li>Created: {{ item.dateCreated }}</li>
-    </ul>
+<h2>Details</h2>
+<ul>
+    <li>Listed by: {{ item.owner }}</li>
+    <li>email: {{ item.owner.email }}</li>
+    <li>Category: {{ item.get_category_display }}</li>
+    <li>Created: {{ item.dateCreated }}</li>
+</ul>
 
-    {% endblock %}
+{% else %}
+
+<div>
+    {% if item.winner == request.user %}
+    <h2>Congratulations!! you win this Auction</h2>
+    {% else %}
+    <h2>Auction is Closed</h2>
+    {% endif %}
+</div>
+
+
+{% endif %}
+
+{% endblock %}

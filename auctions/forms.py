@@ -10,4 +10,4 @@ class NewListingForm(forms.Form):
     description = forms.CharField(widget=forms.Textarea, required=False)
 
 class NewBidForm(forms.Form):
-    bid=forms.DecimalField(decimal_places=2,required=True)
+    bid=forms.DecimalField(decimal_places=2,required=True, min_value=1)
