@@ -11,7 +11,9 @@ from .forms import NewListingForm, NewBidForm
 
 
 def index(request):
-    listing = AuctionListing.objects.all()
+    # listing = AuctionListing.objects.all()
+    myaggregate=AuctionListing.objects.filter(pk=1).aggregate(mymax=Max('item__currentBid'))#for test
+    listing=AuctionListing.objects.annotate(maxBid=Max('item__currentBid'))
     return render(request, "auctions/index.html", {
         "listing": listing
     })
@@ -98,15 +100,15 @@ def new(request):
 
 @login_required(login_url="index")
 def listing(request, item_id):
-    
+
     message = None
-    item = closedManager(request,item_id)
-    bids = Bid.objects.filter(item=item)
+    status = statusManager(request, item_id)
+    item = status["item"]
+    bids = status["bids"]
 
     user = watchlistManager(request, item)  # watchlist
     # all userwatchlist related to this item tested
     watchlistStatus = item.userWatchlist.all()
-
 
     if request.method == "POST":
 
@@ -119,15 +121,22 @@ def listing(request, item_id):
                 "item": item,
                 "isInWatchlist": watchlistStatus.filter(id=user.id).exists(),
                 "message": message,
-                "form": form
+                "form": form,
+                "nbids": status["nbids"],
+                "currentBid": status["currentBid"]
             })
 
     form = NewBidForm()
+    newStatus = statusManager(request, item_id)
+    nbids = newStatus["nbids"]
+    currentBid = newStatus["currentBid"]
     return render(request, "auctions/listing.html", {
         "item": item,
         "isInWatchlist": watchlistStatus.filter(id=user.id).exists(),
         "message": message,
-        "form": form
+        "form": form,
+        "nbids": nbids,
+        "currentBid": currentBid
     })
 
 
@@ -139,18 +148,22 @@ def bidsManage(bids, userBid, user, item):
             maxbid = bids.aggregate(Max('currentBid'))['currentBid__max']
             if(userBid > maxbid):
                 if(bids.filter(currentUser_id=user.id).exists()):
-                    currentUser = bids.get(currentUser_id=user.id)
-                    currentUser.currentBid = userBid
-                    currentUser.save()
+                    newBid = bids.get(currentUser_id=user.id)
+                    newBid.currentBid = userBid
+                    newBid.save()
                 else:
                     newBid = Bid.objects.create(
                         currentUser=user, currentBid=userBid, item=item)
+                # item.currentPrice = newBid
+                # item.save()
             else:
                 message = f"The bid must be greater than { maxbid }"
         else:
             if (userBid >= item.initialPrice):
                 newBid = Bid.objects.create(
                     currentUser=user, currentBid=userBid, item=item)
+                # item.currentPrice = newBid
+                # item.save()
             else:
                 message = f"  The bid must be at least as large as the starting price ${item.initialPrice}"
     return message
@@ -168,15 +181,24 @@ def watchlistManager(request, item):
     return user
 
 
-def closedManager(request, item_id):
-    item=AuctionListing.objects.get(pk=item_id)
-    bids = Bid.objects.filter(item=item)
+def statusManager(request, item_id):
+    listItem = AuctionListing.objects.get(pk=item_id)
+    bids = Bid.objects.filter(item=listItem)
+    # usersInBid=listItem.item.values_list('currentUser', flat=True) #it give me all user who have made bids in the item from Auctionlisting table and i can access directly to a field in bids table
+    nbids = bids.count()
     if bids.exists():
+        maxbid = bids.aggregate(Max('currentBid'))['currentBid__max']
+        maxBidPerUser = listItem.item.values('currentUser').annotate(
+            Max('currentBid'))  # it give me max bid made per user in this item
+        currentBid = maxBidPerUser.get(
+            currentBid__max=maxbid)  # as a dict not query
+
         if "close" in request.GET:
-            maxbid = bids.aggregate(Max('currentBid'))['currentBid__max']
-            winnerBid=bids.get(currentBid=maxbid)
-            winner=winnerBid.currentUser
-            item.closed=True
-            item.winner=winner
-            item.save()
-    return item
+            winnerBid = bids.get(currentBid=maxbid)
+            winner = winnerBid.currentUser
+            listItem.closed = True
+            listItem.winner = winner
+            listItem.save()
+    else:
+        currentBid = None
+    return {"item": listItem, "bids": bids, "nbids": nbids, "currentBid": currentBid}

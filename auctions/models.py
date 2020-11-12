@@ -57,7 +57,7 @@ class Bid(models.Model):
         AuctionListing, on_delete=models.CASCADE, related_name="item")
 
     def __str__(self):
-        return f"{self.currentUser} {self.currentBid} {self.item}"
+        return f"{self.currentBid}"
 
 
 class Coment(models.Model):

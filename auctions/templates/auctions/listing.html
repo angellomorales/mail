@@ -53,8 +53,26 @@
 
 {% if not item.closed %}
 <div>
-    <h2>$ {{ item.initialPrice }}</h2>
-    <h5><small class="text-muted">n bid(s) so far agregar </small></h5>
+
+    {% if currentBid %}
+    <h2>current price: $ {{ currentBid.currentBid__max }}</h2>
+    <div>
+        
+        {% if currentBid.currentUser == request.user.id %}
+        <h5><small class="text-muted">{{ nbids }} bid so far, your bid is the current bid </small></h5>
+        {% else %}
+        <h5><small class="text-muted">{{ nbids }} bid so far </small></h5>
+        {% endif %}
+            
+    </div>
+
+    {% else %}
+    <h2>current price: $ {{ item.initialPrice }}</h2>
+    <h5><small class="text-muted">{{ nbids }} bid so far </small></h5>
+    {% endif %}
+
+
+
     <form action="" method="post">
         {% csrf_token %}
         {{ form }}
