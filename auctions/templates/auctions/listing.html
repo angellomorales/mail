@@ -1,13 +1,14 @@
 {% extends "auctions/layout.html" %}
 
 {% block body %}
-
-{% if message %}
-<h2>Listing: {{ item.title }} </h2>
-<h3>Error:"{{ message }}"</h3>
-{% else %}
-<h2>Listing: {{ item.title }}</h2>
-{% endif %}
+<div>
+    {% if message %}
+    <h2>Listing: {{ item.title }} </h2>
+    <h4><small class="text-muted">Error:"{{ message }}"</small></h4>
+    {% else %}
+    <h2>Listing: {{ item.title }}</h2>
+    {% endif %}
+</div>
 <div class="text-center listing">
     {% if item.image %}
     <img src="{{ item.image }}" class="card-img" alt="Image">
@@ -48,46 +49,77 @@
     {% endif %}
 
 </div>
-<p>{{ item.description }}</p>
-<br>
-
+<div>
+    <p>{{ item.description }}</p>
+    <br>
+</div>
 {% if not item.closed %}
 <div>
 
     {% if currentBid %}
     <h2>current price: $ {{ currentBid.currentBid__max }}</h2>
     <div>
-        
+
         {% if currentBid.currentUser == request.user.id %}
         <h5><small class="text-muted">{{ nbids }} bid so far, your bid is the current bid </small></h5>
         {% else %}
         <h5><small class="text-muted">{{ nbids }} bid so far </small></h5>
         {% endif %}
-            
+
     </div>
 
     {% else %}
-    <h2>current price: $ {{ item.initialPrice }}</h2>
-    <h5><small class="text-muted">{{ nbids }} bid so far </small></h5>
+    <div>
+        <h2>current price: $ {{ item.initialPrice }}</h2>
+        <h5><small class="text-muted">{{ nbids }} bid so far </small></h5>
+    </div>
     {% endif %}
 
 
+    <div>
+        <form action="" method="post">
+            {% csrf_token %}
+            {{ bidForm }}
+            <input type="submit" value="Bid">
+        </form>
+    </div>
 
-    <form action="" method="post">
-        {% csrf_token %}
-        {{ form }}
-        <input type="submit" value="Bid">
-    </form>
+    <br>
+    <div>
+        <h2>Details</h2>
+        <ul>
+            <li>Listed by: {{ item.owner }}</li>
+            <li>email: {{ item.owner.email }}</li>
+            <li>Category: {{ item.get_category_display }}</li>
+            <li>Created: {{ item.dateCreated }}</li>
+        </ul>
+    </div>
+    <br>
+    <h2>Comments:</h2>
+    <br>
+    
+    {% for comments in commentList %}
+    <div class="list-group">
+        <div class="list-group-item">
+            <div class="d-flex w-100 justify-content-end">
+              <small>{{ comments.date }}</small>
+            </div>
+            <p class="mb-1">{{ comments.comment }}</p>
+            <small class="text-muted">{{ comments.user.username }}</small>
+        </div>
+    </div>
+    {% endfor %}
+    <br>
+        
+    <div>
+        <form action="" method="post">
+            {% csrf_token %}
+            {{ commentForm }}
+            <input type="hidden" name="comment" value="True">
+            <input type="submit" value="Add Comment">
+        </form>
+    </div>
 </div>
-<br>
-
-<h2>Details</h2>
-<ul>
-    <li>Listed by: {{ item.owner }}</li>
-    <li>email: {{ item.owner.email }}</li>
-    <li>Category: {{ item.get_category_display }}</li>
-    <li>Created: {{ item.dateCreated }}</li>
-</ul>
 
 {% else %}
 

@@ -6,14 +6,15 @@ from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from django.db.models import Max
 
-from .models import User, AuctionListing, CategoryChoices, Bid
-from .forms import NewListingForm, NewBidForm
+from .models import User, AuctionListing, CategoryChoices, Bid, Comment
+from .forms import NewListingForm, NewBidForm, NewCommentForm
 
 
 def index(request):
     # listing = AuctionListing.objects.all()
-    myaggregate=AuctionListing.objects.filter(pk=1).aggregate(mymax=Max('item__currentBid'))#for test
-    listing=AuctionListing.objects.annotate(maxBid=Max('item__currentBid'))
+    myaggregate = AuctionListing.objects.filter(pk=1).aggregate(
+        mymax=Max('item__currentBid'))  # for test
+    listing = AuctionListing.objects.annotate(maxBid=Max('item__currentBid'))
     return render(request, "auctions/index.html", {
         "listing": listing
     })
@@ -109,38 +110,64 @@ def listing(request, item_id):
     user = watchlistManager(request, item)  # watchlist
     # all userwatchlist related to this item tested
     watchlistStatus = item.userWatchlist.all()
-
+    commentList = commentManager(item)
     if request.method == "POST":
 
-        form = NewBidForm(request.POST)
-        if form.is_valid():
-            userBid = form.cleaned_data["bid"]
-            message = bidsManage(bids, userBid, user, item)  # bids
+        if "comment" in request.POST:
+            bidForm = NewBidForm()
+            commentForm = NewCommentForm(request.POST)
+            if commentForm.is_valid():
+                userComment = commentForm.cleaned_data["comments"]
+                comment = Comment.objects.create(
+                    user=user, itemComment=item, comment=userComment)
+            else:
+                return render(request, "auctions/listing.html", {
+                    "item": item,
+                    "isInWatchlist": watchlistStatus.filter(id=user.id).exists(),
+                    "message": message,
+                    "bidForm": bidForm,
+                    "commentForm": commentForm,
+                    "nbids": status["nbids"],
+                    "currentBid": status["currentBid"],
+                    "commentList": commentList
+                })
         else:
-            return render(request, "auctions/listing.html", {
-                "item": item,
-                "isInWatchlist": watchlistStatus.filter(id=user.id).exists(),
-                "message": message,
-                "form": form,
-                "nbids": status["nbids"],
-                "currentBid": status["currentBid"]
-            })
+            bidForm = NewBidForm(request.POST)
+            commentForm = NewCommentForm()
+            if bidForm.is_valid():
+                userBid = bidForm.cleaned_data["bid"]
+                message = bidsManager(bids, userBid, user, item)  # bids
+            else:
+                return render(request, "auctions/listing.html", {
+                    "item": item,
+                    "isInWatchlist": watchlistStatus.filter(id=user.id).exists(),
+                    "message": message,
+                    "bidForm": bidForm,
+                    "commentForm": commentForm,
+                    "nbids": status["nbids"],
+                    "currentBid": status["currentBid"],
+                    "commentList": commentList
+                })
 
-    form = NewBidForm()
+    bidForm = NewBidForm()
+    commentForm = NewCommentForm()
     newStatus = statusManager(request, item_id)
+    newCommentList = commentManager(item)
     nbids = newStatus["nbids"]
     currentBid = newStatus["currentBid"]
     return render(request, "auctions/listing.html", {
         "item": item,
         "isInWatchlist": watchlistStatus.filter(id=user.id).exists(),
         "message": message,
-        "form": form,
+        "bidForm": bidForm,
+        "commentForm": commentForm,
         "nbids": nbids,
-        "currentBid": currentBid
+        "currentBid": currentBid,
+        "commentList": newCommentList
     })
 
 
-def bidsManage(bids, userBid, user, item):
+def bidsManager(bids, userBid, user, item):
     message = None
     if not item.closed:
         if bids.exists():
@@ -154,16 +181,12 @@ def bidsManage(bids, userBid, user, item):
                 else:
                     newBid = Bid.objects.create(
                         currentUser=user, currentBid=userBid, item=item)
-                # item.currentPrice = newBid
-                # item.save()
             else:
                 message = f"The bid must be greater than { maxbid }"
         else:
             if (userBid >= item.initialPrice):
                 newBid = Bid.objects.create(
                     currentUser=user, currentBid=userBid, item=item)
-                # item.currentPrice = newBid
-                # item.save()
             else:
                 message = f"  The bid must be at least as large as the starting price ${item.initialPrice}"
     return message
@@ -202,3 +225,9 @@ def statusManager(request, item_id):
     else:
         currentBid = None
     return {"item": listItem, "bids": bids, "nbids": nbids, "currentBid": currentBid}
+
+
+def commentManager(item):
+    commentList = None
+    commentList=Comment.objects.filter(itemComment=item)
+    return commentList

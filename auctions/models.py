@@ -11,11 +11,12 @@ class User(AbstractUser):
     # si hay un error borrar cache initial y el archivo .sqlite3 y volver a hacer migracion sin el nombre de
     # la app
     # pass
-    #use 'class' in the poiner when class is below the pointer
-    watchlist=  models.ManyToManyField('AuctionListing',blank=True, related_name="userWatchlist")
+    # use 'class' in the poiner when class is below the pointer
+    watchlist = models.ManyToManyField(
+        'AuctionListing', blank=True, related_name="userWatchlist")
 
-    # def __str__(self):
-    #     return f"{self.username}"
+    def __str__(self):
+        return f"{self.username}"
 
 
 class CategoryChoices(models.TextChoices):
@@ -24,8 +25,6 @@ class CategoryChoices(models.TextChoices):
     FASHION = "FA", _("Fashion")
     ELECTRONICS = "EL", _("Electronics")
     HOME = "HO", _("Home")
-
-
 
 
 class AuctionListing(models.Model):
@@ -39,34 +38,38 @@ class AuctionListing(models.Model):
         max_length=2, choices=CategoryChoices.choices, default=CategoryChoices.UNCATEGORY, blank=False)
     owner = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="owner")
-    winner=models.ForeignKey(
+    winner = models.ForeignKey(
         User, on_delete=models.CASCADE, blank=True, null=True, related_name="winner")
 
     def __str__(self):
         if self.closed:
-            status="closed"
+            status = "closed"
         else:
-            status="available"
+            status = "available"
         return f"{self.title} Status: {status}"
+
 
 class Bid(models.Model):
     currentBid = models.DecimalField(max_digits=11, decimal_places=2)
     currentUser = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="currentUser")
-    item=models.ForeignKey(
+    item = models.ForeignKey(
         AuctionListing, on_delete=models.CASCADE, related_name="item")
 
     def __str__(self):
         return f"{self.currentBid}"
 
 
-class Coment(models.Model):
+class Comment(models.Model):
     user = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="userComent")
-    user
-    itemComent = models.ForeignKey(
-        AuctionListing, on_delete=models.CASCADE, related_name="itemComent")
-    coment = models.TextField(blank=True)
+    itemComment = models.ForeignKey(
+        AuctionListing, on_delete=models.CASCADE, related_name="itemComment")
+    comment = models.TextField(blank=False)
+    date = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering=["date"]
 
     def __str__(self):
-        return f"{self.itemComent} {self.user} {self.coment}"
+        return f"{self.itemComment} {self.user} {self.comment}"
