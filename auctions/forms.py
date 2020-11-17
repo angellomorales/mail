@@ -18,4 +18,10 @@ class NewBidForm(forms.Form):
 
 
 class NewCommentForm(forms.Form):
-    comments = forms.CharField(widget=forms.Textarea, required=True, label="Your comment")
+    comments = forms.CharField(
+        widget=forms.Textarea, required=True, label="Your comment")
+
+
+class NewCategoryForm(forms.Form):
+    category = forms.ChoiceField(
+        choices=CategoryChoices.choices, required=True, label="Category")

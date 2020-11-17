@@ -7,13 +7,13 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Max
 
 from .models import User, AuctionListing, CategoryChoices, Bid, Comment
-from .forms import NewListingForm, NewBidForm, NewCommentForm
+from .forms import NewListingForm, NewBidForm, NewCommentForm, NewCategoryForm
 
 
 def index(request):
     # listing = AuctionListing.objects.all()
-    myaggregate = AuctionListing.objects.filter(pk=1).aggregate(
-        mymax=Max('item__currentBid'))  # for test
+    # myaggregate = AuctionListing.objects.filter(pk=1).aggregate(
+    # mymax=Max('item__currentBid'))  # for test
     listing = AuctionListing.objects.annotate(maxBid=Max('item__currentBid'))
     return render(request, "auctions/index.html", {
         "listing": listing
@@ -169,17 +169,32 @@ def listing(request, item_id):
 
 @login_required(login_url="index")
 def watchlist(request):
-    currentUser=User.objects.get(id=request.user.id)
-    watchlist=currentUser.watchlist.all()
-    listing=watchlist.annotate(maxBid=Max('item__currentBid'))
+    currentUser = User.objects.get(id=request.user.id)
+    watchlist = currentUser.watchlist.all()
+    listing = watchlist.annotate(maxBid=Max('item__currentBid'))
     return render(request, "auctions/watchlist.html", {
         "watchlist": listing
     })
 
-def categories(request):
-    return render(request, "auctions/categories.html")
 
-#-----------------------------------------own functions---------------------------------------
+def categories(request):
+    listing = AuctionListing.objects.annotate(maxBid=Max('item__currentBid'))
+    if request.method == "POST":
+        categoryForm = NewCategoryForm(request.POST)
+        if categoryForm.is_valid():
+            category = categoryForm.cleaned_data["category"]
+            listed=AuctionListing.objects.filter(category=category).annotate(maxBid=Max('item__currentBid'))
+        return render(request, "auctions/categories.html", {
+            "listing": listed,
+            "categoryForm": categoryForm
+        })
+    return render(request, "auctions/categories.html", {
+        "listing": listing,
+        "categoryForm": NewCategoryForm()
+    })
+
+# -----------------------------------------own functions---------------------------------------
+
 
 def bidsManager(bids, userBid, user, item):
     message = None
