@@ -1,0 +1,50 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+{% for item in watchlist %}
+<a href="{% url 'listing' item.id %}">
+<div class="card">
+    <div class="row">
+        <div class="col-md-4">
+            <div class="text-center">
+
+                {% if item.image %}
+                <img src="{{ item.image }}" class="card-img" alt="Image">
+                {% else %}
+                <img src="https://ctkbiotech.com/wp/wp-content/uploads/2018/03/not-available.jpg"
+                    class="card-img" alt="Image">
+                {% endif %}
+
+            </div>
+        </div>
+        <div class="col-md-8">
+            <div class="card-body">
+                <h5 class="card-title">{{ item.title }}</h5>
+                <p class="card-text">{{ item.description }}</p>
+
+                {% if item.closed %}
+                {% if item.winner == request.user %}
+                <p class="card-text"><small class="text-muted">Won</small></p>
+                {% else %}
+                <p class="card-text"><small class="text-muted">Auction Closed</small></p>
+                {% endif %}
+                {% else %}
+                <div>
+                    {% if item.maxBid %}
+                    <p class="card-text"><small class="text-muted">price: {{ item.maxBid }}</small></p>
+                    {% else %}
+                    <p class="card-text"><small class="text-muted">price: {{ item.initialPrice }}</small></p>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+            </div>
+        </div>
+    </div>
+</div>
+</a>
+<br>
+
+{% endfor %}
+    
+{% endblock %}

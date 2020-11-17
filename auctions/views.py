@@ -167,6 +167,20 @@ def listing(request, item_id):
     })
 
 
+@login_required(login_url="index")
+def watchlist(request):
+    currentUser=User.objects.get(id=request.user.id)
+    watchlist=currentUser.watchlist.all()
+    listing=watchlist.annotate(maxBid=Max('item__currentBid'))
+    return render(request, "auctions/watchlist.html", {
+        "watchlist": listing
+    })
+
+def categories(request):
+    return render(request, "auctions/categories.html")
+
+#-----------------------------------------own functions---------------------------------------
+
 def bidsManager(bids, userBid, user, item):
     message = None
     if not item.closed:
@@ -229,5 +243,5 @@ def statusManager(request, item_id):
 
 def commentManager(item):
     commentList = None
-    commentList=Comment.objects.filter(itemComment=item)
+    commentList = Comment.objects.filter(itemComment=item)
     return commentList
