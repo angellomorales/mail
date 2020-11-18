@@ -7,11 +7,17 @@ body {
 }
 
 .card img{
-    max-height: 250px;
-    max-width: 250px;
+    max-height: 200px;
+    max-width: 200px;
     width: auto;
 }
 .listing img{
     max-height: 400px;
     width: auto;
+}
+.listed:link, .listed:visited, .listed:active {
+    color: black;
+}
+.txtfield{
+    max-height: 100px;
 }

@@ -6,12 +6,15 @@
 <form method="POST">
     {% csrf_token %}
     <table class="table-borderless">
-        {{ form }}
-        <tr class="submitr"><td colspan="2"><input type="submit" value="Create"></td></tr>
+        <div class="form-group">
+            {{ form }}
+        </div>
+        <tr class="submitr">
+            <td colspan="2"><input type="submit" class="btn btn-primary mb-2" value="Create"></td>
+        </tr>
     </table>
-    
+
 </form>
 
 
 {% endblock %}
-    

@@ -1,17 +1,24 @@
 {% extends "auctions/layout.html" %}
 
 {% block body %}
-<form method="POST">
+<form class="form-inline" method="POST">
     {% csrf_token %}
-    {{ categoryForm }}
-    <input type="submit" value="Select">
-</form>
+    <div class="form-group mb-2">
+        {{ categoryForm.category.label }}:
+    </div>
+    <div class="form-group mx-sm-3 mb-2">
+        {{ categoryForm.category }}
+    </div>
+    <input class="btn btn-primary mb-2" type="submit" value="Select">
 
+</form>
 {% for item in listing %}
+
+{% if not item.closed %}
 
 <div>
     {% if user.is_authenticated %}
-    <a href="{% url 'listing' item.id %}">
+    <a class="listed" href="{% url 'listing' item.id %}">
         {% endif %}
 
         <div class="card">
@@ -35,9 +42,9 @@
 
                         {% if item.closed %}
                         {% if item.winner == request.user %}
-                        <p class="card-text"><small class="text-muted">Won</small></p>
+                        <p class="card-text"><span class="badge badge-success">Won</span></p>
                         {% else %}
-                        <p class="card-text"><small class="text-muted">Auction Closed</small></p>
+                        <p class="card-text"><span class="badge badge-danger">Auction Closed</span></p>
                         {% endif %}
                         {% else %}
                         <div>
@@ -58,6 +65,8 @@
     {% endif %}
     <br>
 </div>
+
+{% endif %}
 
 {% endfor %}
 
