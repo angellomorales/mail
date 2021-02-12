@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', function () {
   load_mailbox('inbox');
 });
 
-function compose_email() {
+function compose_email(contents) {
 
   // Show compose view and hide other views
   document.querySelector('#emails-view').style.display = 'none';
@@ -19,9 +19,20 @@ function compose_email() {
   document.querySelector('#compose-view').style.display = 'block';
 
   // Clear out composition fields
-  manage_form_fields('#compose-recipients');
-  manage_form_fields('#compose-subject');
-  manage_form_fields('#compose-body');
+  if (contents.sender === undefined) {
+    manage_form_fields('#compose-recipients');
+    manage_form_fields('#compose-subject');
+    manage_form_fields('#compose-body');
+  } else {
+    //prefill composition fields
+    document.querySelector('#compose-recipients').value = contents.sender;
+    if (contents.subject.startsWith('Re:')) {
+      document.querySelector('#compose-subject').value = contents.subject;
+    } else {
+      document.querySelector('#compose-subject').value = `Re: ${contents.subject}`;
+    }
+    document.querySelector('#compose-body').value = `"On ${contents.timestamp} ${contents.sender} wrote:" ${contents.body}`;
+  }
   // debugger// to pause and activate debug in chrome console 
   //send a mail to recipients when submit
   document.querySelector('#compose-form').onsubmit = function () {
@@ -56,7 +67,7 @@ function status(response) {
     }
     if (response.status == 204) {
       load_mailbox('inbox');
-    } 
+    }
   } else {
     return Promise.reject(new Error(response.statusText))
   }
@@ -202,17 +213,17 @@ function load_mail_detail(contents) {
 }
 
 function reply_mail(contents) {
-  alert(contents.subject);
+  compose_email(contents);
 }
 
 function archive_mail(contents, archiveStatus) {
-  //request put to update archived status
+  //request put to update archived status when promise of fetch finish update inbox with .then status
 
   fetch(`/emails/${contents.id}`, {
-    method: 'PUT',
-    body: JSON.stringify({
-      archived: archiveStatus
+      method: 'PUT',
+      body: JSON.stringify({
+        archived: archiveStatus
+      })
     })
-  })
-  .then(status);
+    .then(status);
 }
