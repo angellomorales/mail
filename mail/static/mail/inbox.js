@@ -52,8 +52,11 @@ function status(response) {
     //check status according to views.py and show sent page
     if (response.status == 201) {
       load_mailbox('sent');
+      return response.json();
     }
-    return response.json();
+    if (response.status == 204) {
+      load_mailbox('inbox');
+    } 
   } else {
     return Promise.reject(new Error(response.statusText))
   }
@@ -97,20 +100,60 @@ function add_mail(contents) {
     title = contents.recipients;
   }
 
-  // create new mail container 
+  // create new body mail container 
+  const bodyMailContainer = document.createElement('div');
+  bodyMailContainer.className = 'body-mailContainer';
+  bodyMailContainer.innerHTML = `<div><small>${contents.timestamp}</small></div><h5>${title}</h5><p>${contents.subject}</p>`;
+  bodyMailContainer.addEventListener('click', () => {
+    load_mail_detail(contents);
+  });
+
+  //Add archive button
+  let archiveStatus = false;
+  const archiveButton = document.createElement('button')
+  archiveButton.className = 'btn btn-sm btn-outline-secondary';
+  archiveButton.style.display = 'none';
+  archiveButton.id = 'archive';
+  if (mailboxValue == 'inbox') {
+    archiveStatus = true;
+    archiveButton.innerText = "archive";
+  }
+  if (mailboxValue == 'archive') {
+    archiveStatus = false;
+    archiveButton.innerText = "unarchive";
+  }
+  archiveButton.addEventListener('click', () => {
+    archive_mail(contents, archiveStatus);
+  });
+
+  // create new footer mail container 
+  const footerMailContainer = document.createElement('div');
+  footerMailContainer.className = 'footer-mailContainer';
+  footerMailContainer.append(archiveButton);
+
+  //create mail container which contains body and footer
   const mailContainer = document.createElement('div');
   mailContainer.className = 'mailContainer';
-  mailContainer.innerHTML = `<div><small>${contents.timestamp}</small></div><h5>${title}</h5><p>${contents.subject}</p>`;
+  mailContainer.append(bodyMailContainer);
+  mailContainer.append(footerMailContainer);
+
   if (contents.read) {
     mailContainer.style.backgroundColor = 'lightgrey';
     mailContainer.style.color = 'dimgray';
   }
-  mailContainer.addEventListener('click', () => {
-    load_mail_detail(contents);
+
+  // Add mail container full to div emails-view 
+  document.querySelector('#emails-view').append(mailContainer);
+
+  //show archive buttons in mail container
+  document.querySelectorAll('#archive').forEach(button => {
+    if (mailboxValue == 'inbox' || mailboxValue == 'archive') {
+      button.style.display = 'inline-block';
+    } else {
+      button.style.display = 'none';
+    }
   });
 
-  // Add mail to div emails-view 
-  document.querySelector('#emails-view').append(mailContainer);
 };
 
 function load_mail_detail(contents) {
@@ -160,4 +203,16 @@ function load_mail_detail(contents) {
 
 function reply_mail(contents) {
   alert(contents.subject);
+}
+
+function archive_mail(contents, archiveStatus) {
+  //request put to update archived status
+
+  fetch(`/emails/${contents.id}`, {
+    method: 'PUT',
+    body: JSON.stringify({
+      archived: archiveStatus
+    })
+  })
+  .then(status);
 }

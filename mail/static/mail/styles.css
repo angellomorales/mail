@@ -9,13 +9,20 @@ textarea {
     /* background-color: gray;
     color: white; */
 }
-.mailContainer div{
+.body-mailContainer div,.footer-mailContainer{
     text-align: right;
-    margin: 0;
-    padding: 0;
+    margin: 0px;
+    padding: 0px;
 }
 .mailContainer:hover{
     border-color: lightslategray;
+}
+.body-mailContainer:hover{
     cursor: pointer;
+}
+#archive{
+    text-align: right;
+    margin: 2px;
+    padding: 2px;
 }
 
