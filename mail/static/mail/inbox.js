@@ -15,6 +15,7 @@ function compose_email() {
 
   // Show compose view and hide other views
   document.querySelector('#emails-view').style.display = 'none';
+  document.querySelector('#email-detail-view').style.display = 'none';
   document.querySelector('#compose-view').style.display = 'block';
 
   // Clear out composition fields
@@ -48,6 +49,7 @@ function compose_email() {
 
 function status(response) {
   if (response.ok) {
+    //check status according to views.py and show sent page
     if (response.status == 201) {
       load_mailbox('sent');
     }
@@ -58,6 +60,7 @@ function status(response) {
 }
 
 function manage_form_fields(formelement) {
+  //get value from fields and clean out
   let value;
   value = document.querySelector(formelement).value;
   document.querySelector(formelement).value = '';
@@ -69,6 +72,7 @@ function load_mailbox(mailbox) {
   // Show the mailbox and hide other views
   document.querySelector('#emails-view').style.display = 'block';
   document.querySelector('#compose-view').style.display = 'none';
+  document.querySelector('#email-detail-view').style.display = 'none';
 
   // Show the mailbox name
   document.querySelector('#emails-view').innerHTML = `<h3>${mailbox.charAt(0).toUpperCase() + mailbox.slice(1)}</h3>`;
@@ -87,7 +91,7 @@ function load_mailbox(mailbox) {
 }
 
 function add_mail(contents) {
-
+  //if the view is on sent page
   let title = contents.sender;
   if (mailboxValue == 'sent') {
     title = contents.recipients;
@@ -98,10 +102,62 @@ function add_mail(contents) {
   mailContainer.className = 'mailContainer';
   mailContainer.innerHTML = `<div><small>${contents.timestamp}</small></div><h5>${title}</h5><p>${contents.subject}</p>`;
   if (contents.read) {
-    mailContainer.style.backgroundColor='gray';
-    mailContainer.style.color='white';
+    mailContainer.style.backgroundColor = 'lightgrey';
+    mailContainer.style.color = 'dimgray';
   }
+  mailContainer.addEventListener('click', () => {
+    load_mail_detail(contents);
+  });
 
   // Add mail to div emails-view 
   document.querySelector('#emails-view').append(mailContainer);
 };
+
+function load_mail_detail(contents) {
+  // Show the mail detail and hide other views
+  document.querySelector('#emails-view').style.display = 'none';
+  document.querySelector('#compose-view').style.display = 'none';
+  document.querySelector('#email-detail-view').style.display = 'block';
+
+  // Show the headers of the mail
+  document.querySelector('#email-detail-view').innerHTML = `<div class="header"><strong>From: </strong>${contents.sender}<br>
+  <strong>To: </strong>${contents.recipients}<br>
+  <strong>Subject: </strong>${contents.subject}<br>
+  <strong>Timestamp: </strong>${contents.timestamp}<br></div>`;
+
+  //add reply button
+  const replyButton = document.createElement('button');
+  replyButton.className = 'btn btn-sm btn-outline-primary';
+  replyButton.id = 'reply';
+  replyButton.innerText = "Reply";
+  replyButton.addEventListener('click', () => {
+    reply_mail(contents);
+  });
+
+  //add hr separator
+  const hr = document.createElement('hr');
+
+  //add body mail
+  const body = document.createElement('div');
+  body.className = 'body-mail';
+  body.innerHTML = `<p>${contents.body}</p>`
+
+  //add elements to container
+  document.querySelector('#email-detail-view').append(replyButton);
+  document.querySelector('#email-detail-view').append(hr);
+  document.querySelector('#email-detail-view').append(body);
+
+  //request put to update read status
+
+  fetch(`/emails/${contents.id}`, {
+    method: 'PUT',
+    body: JSON.stringify({
+      read: true
+    })
+  });
+
+}
+
+function reply_mail(contents) {
+  alert(contents.subject);
+}

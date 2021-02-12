@@ -14,4 +14,8 @@ textarea {
     margin: 0;
     padding: 0;
 }
+.mailContainer:hover{
+    border-color: lightslategray;
+    cursor: pointer;
+}
 
